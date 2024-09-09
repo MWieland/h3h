@@ -134,7 +134,7 @@ def run(
 
     # write comparison dataframe to file
     gdf_h3.to_file(
-        Path(out_dir) / Path(Path(out_dir) / Path(f"comparison_{z_list[0]}-{z_list[1]}{aggr_str}{smooth_str}.gpkg")),
+        Path(out_dir) / Path(f"comparison_{z_list[0]}-{z_list[1]}{aggr_str}{smooth_str}.gpkg"),
         driver="GPKG",
     )
 

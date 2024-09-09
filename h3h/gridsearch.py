@@ -35,6 +35,7 @@ def compare(parameter, data_dir, layers, layer_true, area_of_interest, out_dir):
                 area_of_interest=area_of_interest,
                 layers=layers,
                 pooling_weights=pooling_weights,
+                pooling_weights_auto=False,
                 h3_resolution=h3_resolution,
                 normalization_quantiles=normalization_quantiles,
                 save_normalized_layers=False,
@@ -67,10 +68,8 @@ def compare(parameter, data_dir, layers, layer_true, area_of_interest, out_dir):
                 for f in Path(tmp_dir).glob("comparison_*"):
                     shutil.copyfile(f, Path(out_dir) / Path(f"comparisons_h3_{h3_resolution}") / Path(f).name)
                 file_name = Path(f).stem
-        except:
-            # TODO: handle case where input contains inf or nans properly
-            # statsmodels.tools.sm_exceptions.MissingDataError: exog contains inf or nans
-            logging.info("Exception raised")
+        except Exception as e:
+            logging.debug(e)
             r_square_adj, r, p, aic, bic, file_name = None, None, None, None, None, None
 
     return {
@@ -143,4 +142,4 @@ def run(
 
         # report top5 parameter combinations (having highest r_squared_adj)
         top5 = results.sort_values(by=["r_square_adj"], ascending=False)[0:5]
-        print(top5)
+        logging.info(top5)
