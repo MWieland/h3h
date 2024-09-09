@@ -1,40 +1,40 @@
 [HOTSPOTS]
-DATA_DIR = "/mnt/data1/Workspace/python/h3h/testdata"                               # directory that holds the input layers
-AREA_OF_INTEREST = "/mnt/data1/Workspace/python/h3h/testdata/aoi.gpkg"              # analysis extent for hotspots
+DATA_DIR = "testdata"                                                               # directory that holds the input layers
+AREA_OF_INTEREST = "testdata/aoi.gpkg"                                              # analysis extent for hotspots
 LAYERS = ["buildings_20210715.gpkg", "flood_20210715.tif", "twitter_20210715.gpkg"] # input layers
 POOLING_WEIGHTS = [1.75, 0.25, 2.0]                                                 # pooling weights per input layer (higher weights = more focus)
-POOLING_WEIGHTS_AUTO = false                                                        # find optimal pooling weight by minimizing KL divergence
+POOLING_WEIGHTS_AUTO = true                                                         # find optimal pooling weight by minimizing KL divergence
 H3_RESOLUTION = 7                                                                   # convert input layers to this h3 resolution
 NORMALIZATION_QUANTILES = [0.01, 0.99]                                              # minmax scaler quantiles to normalize input layers [0.0, 1.0]
 SAVE_NORMALIZED_LAYERS = true                                                       # save normalized and converted input layers
-OUT_DIR = "/mnt/data1/Workspace/python/h3h/testdata/results"                        # output directory
+OUT_DIR = "testdata/results"                                                        # output directory
 
 [CONVERT]
-DATA_DIR = "/mnt/data1/Workspace/python/h3h/testdata"                               # directory that holds the input layers
+DATA_DIR = "testdata"                                                               # directory that holds the input layers
 LAYERS = ["damage_20210715.gpkg"]                                                   # input layers
 NORMALIZATION_QUANTILES = [0.0, 1.0]                                                # minmax scaler quantiles to normalize input layers [0.0, 1.0]
 H3_RESOLUTION = 7                                                                   # convert input layers to this h3 resolution
-OUT_DIR = "/mnt/data1/Workspace/python/h3h/testdata/results"                        # output directory
+OUT_DIR = "testdata/results"                                                        # output directory
 
 [COMPARE]
-LAYER_TRUE = "/mnt/data1/Workspace/python/h3h/testdata/results/damage_20210715_norm_00_10_h3_7.gpkg"   # true h3 hotspot layer file
-LAYER_PRED = "/mnt/data1/Workspace/python/h3h/testdata/results/hotspots_norm_001_099_weights_175_025_20_h3_7.gpkg"   # predicted h3 hotspot layer file
-AREA_OF_INTEREST = "/mnt/data1/Workspace/python/h3h/testdata/aoi.gpkg"              # area of interest for comparison (should be the same as in HOTSPOTS)
+LAYER_TRUE = "testdata/results/damage_20210715_norm_00_10_h3_7.gpkg"                # true h3 hotspot layer file
+LAYER_PRED = "testdata/results/hotspots_norm_001_099_weights_175_025_20_h3_7.gpkg"  # predicted h3 hotspot layer file
+AREA_OF_INTEREST = "testdata/aoi.gpkg"                                              # area of interest for comparison (should be the same as in HOTSPOTS)
 H3_RESOLUTION = 7                                                                   # native h3 resolution of input layers
 H3_RESOLUTION_AGGREGATE = ""                                                        # aggregate to lower (smaller) h3 resolution [int, ""]
 H3_SMOOTHING_FACTOR = 0                                                             # factor to apply for spatial smoothing of h3 grid cells [set to 0 for no smoothing]
 INTERSECT = false                                                                   # if true compare only the spatial intersection of input layer cells else compare all cells in aoi
 COMBINE_PLOTS = true                                                                # if true combines all plots into one figure else plot separate figures
-OUT_DIR = "/mnt/data1/Workspace/python/h3h/testdata/results"                        # output directory
+OUT_DIR = "testdata/results"                                                        # output directory
 
 [GRIDSEARCH]
-DATA_DIR = "/mnt/data1/Workspace/python/h3h/testdata"                               # directory that holds the input layers
+DATA_DIR = "testdata"                                                               # directory that holds the input layers
 LAYERS = ["buildings_20210715.gpkg", "flood_20210715.tif", "twitter_20210715.gpkg"] # input layers
 POOLING_WEIGHTS_FROM_TO_STEPS = [0.0, 2.0, 0.25]                                    # pooling weights search space
 NORMALIZATION_QUANTILES = [[0.02, 0.98], [0.01, 0.99], [0.0, 1.0]]                  # normalization quantiles search space
-H3_RESOLUTIONS = [6, 7, 8, 9, 10]                                                   # h3 resolution
+H3_RESOLUTIONS = [6, 7, 8]                                                          # h3 resolution
 LAYER_TRUE = "damage_20210715.gpkg"                                                 # true h3 hotspot layer file (will be converted and normalized on the fly)
-AREA_OF_INTEREST = "/mnt/data1/Workspace/python/h3h/testdata/aoi.gpkg"              # area of interest for comparison
+AREA_OF_INTEREST = "testdata/aoi.gpkg"                                              # area of interest for comparison
 N_JOBS = 10                                                                         # number of jobs to run in parallel for grid search
 SAVE_GEOPACKAGE = false                                                             # save results as geopackage (if false only png plots are saved)
-OUT_DIR = "/mnt/data1/Workspace/python/h3h/testdata/results"                        # output directory
+OUT_DIR = "testdata/results"                                                        # output directory

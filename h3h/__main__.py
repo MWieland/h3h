@@ -1,6 +1,5 @@
 import argparse
 import datetime
-import h3
 import logging
 import toml
 
@@ -68,6 +67,7 @@ starttime = datetime.datetime.now()
 logging.info(f"Starttime: {str(starttime.strftime('%H:%M:%S'))}")
 
 if args.hotspots:
+    logging.info("Computing hotspots")
     hotspot_file = hotspots.run(
         data_dir=settings["HOTSPOTS"]["DATA_DIR"],
         area_of_interest=settings["HOTSPOTS"]["AREA_OF_INTEREST"],
@@ -81,6 +81,7 @@ if args.hotspots:
     )
 
 if args.convert:
+    logging.info("Converting layer to H3")
     layer_files = convert.run(
         data_dir=settings["CONVERT"]["DATA_DIR"],
         layers=settings["CONVERT"]["LAYERS"],
@@ -90,6 +91,7 @@ if args.convert:
     )
 
 if args.compare:
+    logging.info("Comparing results")
     r_square_adj, r, p, aic, bic = compare.run(
         layer_true=settings["COMPARE"]["LAYER_TRUE"],
         layer_pred=settings["COMPARE"]["LAYER_PRED"],
