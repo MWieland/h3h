@@ -1,13 +1,13 @@
 # H3H: Disaster hotspot analysis with H3
 Immediately after a disaster strikes, it is crucial to quickly identify the most impacted areas to guide rapid response efforts and prioritise resource allocation effectively. Utilising early-stage estimations of impacted regions, derived from indicators such as building distribution, hazard zones or geo-social media reports, can aid in planning data collection initiatives to enhance situational awareness.
 
-[H3H](https://github.com/MWieland/h3h) provides tools to compute and evaluate disaster hotspot maps. It leverages the [H3 discrete global grid system]() and uses a log-linear pooling method coupled with an unsupervised hyperparameter optimization to fuse heterogeneous geospatial information layers.
+[H3H](https://github.com/MWieland/h3h) provides tools to compute and evaluate disaster hotspot maps. It leverages the [H3 discrete global grid system](https://h3geo.org) and uses a log-linear pooling method coupled with an unsupervised hyperparameter optimization to fuse heterogeneous geospatial information layers.
 
 <img src="img/overview.png" alt="drawing" width="100%"/>
 
-*Hotspot map computed with loglinear pooling at H3 resolution 7 from equally weighted normalized input layers (buildings, flooded areas, social media hotspots). Results are compared against an observed damage distribution for the flood disaster in Germany 2021.*
+*Hotspot map computed with log-linear pooling at H3 resolution 7 from equally weighted normalized input layers (buildings, flooded areas, social media hotspots). Results are compared against an observed damage distribution for the flood disaster in Germany 2021.*
 
-This publication provides further insight into the underlying algorithm and shows application examples and evaluations in real-world disasters.
+This publication provides further insight into the underlying algorithms and shows application examples and evaluations for several real-world flood disasters.
 
 > *Wieland, M., Resch, B., Schmidt, S., Abecker, A., Martinis, S. (under review). Fusion of geospatial information from remote sensing and social media to prioritize rapid response actions in case of floods. Natural Hazards.*
 
@@ -35,12 +35,12 @@ Input layers are converted to H3 grid at desired resolution. Conversion of **ras
 > NOTE: Conversion to H3 grid is done on-the-fly (no need to run `--convert` before)
 
 #### 2. Normalization
-Values of converted input layers are normalized to range [0, 1] with a minmax scaler with rejection bounds. Setting `NORMALIZATION_QUANTILES` enables to scale to quantile range and reduce effect of extreme values.
+Values of converted input layers are normalized to range [0, 1] with a minmax scaler with rejection bounds. Setting `NORMALIZATION_QUANTILES` enables to scale to quantile range and to reduce effects of extreme values.
 
 > NOTE: Vector input layers require an attribute field with name "value", which will be used for normalization. E.g., to count the number of building points per grid cell, make sure to have an attribute column with name "value" and all values set to 1. 
 
 #### 3. Log-linear pooling
-The normalized H3 input layers are combined by using a loglinear pooling operator. Each layer is assigned a `POOLING_WEIGHT`, which controls their influence on the final result. Higher weight values generally refer to more focus. The result is a hotspot map with range [0, 1]. 
+The normalized H3 input layers are combined by using a log-linear pooling operator. Each layer is assigned a `POOLING_WEIGHT`, which controls their influence on the final result. Higher weight values generally refer to more focus. The result is a hotspot map with range [0, 1]. 
 
 > NOTE: If `POOLING_WEIGHTS_AUTO=true`, optimal pooling weights are identified by minimizing the Kullback Leibler divergence between proxy information layers and predicted hotspots.
 
@@ -78,7 +78,7 @@ Runs a grid search over a set of user-defined parameter search spaces.
 $ python -m h3h --gridsearch --settings path/to/settings.toml
 ```
 
-Currently, search space can be defined for `POOLING_WEIGHTS`, `NORMALIZATION_QUANTILES` and `H3_RESOLUTION`. For each parameter combination a hotspot map is computed and compared against a true hotspot map (`LAYER_TRUE`). The true hotspot map is generated on the fly for each parameter combination to account for specific resolution and normalization quantiles. The module returns a hotspot map and comparison plots for each parameter combination as well as a summary table of the results.
+The search space can be defined for `POOLING_WEIGHTS`, `NORMALIZATION_QUANTILES` and `H3_RESOLUTION`. For each parameter combination a hotspot map is computed and compared against a true hotspot map (`LAYER_TRUE`). The true hotspot map is generated on the fly for each parameter combination to account for specific resolution and normalization quantiles. The module returns a hotspot map and comparison plots for each parameter combination as well as a summary table of the results.
 
 > NOTE: Add precomputed normalized H3 input layers for the desired H3 resolution into `OUT_DIR` for faster processing. This loads the layers instead of converting them.
 
