@@ -1,0 +1,10 @@
+geopandas 
+h3 
+h3pandas 
+rioxarray 
+statsmodels 
+scikit-learn 
+toml 
+tqdm 
+contextily 
+seaborn 

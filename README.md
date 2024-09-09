@@ -87,9 +87,8 @@ The search space can be defined for `POOLING_WEIGHTS`, `NORMALIZATION_QUANTILES`
 ## Installation
 ```shell
 $ conda create -n h3h python=3.11
-$ pip install geopandas h3 h3pandas rioxarray statsmodels scikit-learn toml tqdm contextily seaborn 
+$ pip install git+https://github.com/MWieland/h3h
 ```
-
 
 ## Test data
 The [testdata](testdata/) directory contains input files for the Germany floods 2021. The data can be used for tests and to see how original input layers need to be prepared to work with [H3H](https://github.com/MWieland/h3h).
