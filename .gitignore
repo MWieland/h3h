@@ -1,0 +1,7 @@
+*~
+*.pyc
+testdata/*
+notebooks/prepare_buildings_google.ipynb
+notebooks/prepare_buildings_microsoft.ipynb
+notebooks/prepare_water.py
+notebooks/search_proc-hr-semseg.py
