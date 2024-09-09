@@ -15,7 +15,7 @@ setup(
         "scikit-learn",
         "toml",
         "tqdm",
-        "contextly",
+        "contextily",
         "seaborn",
     ],
 )
