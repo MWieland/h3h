@@ -8,20 +8,22 @@ from joblib import Parallel, delayed
 from pathlib import Path
 from sklearn.model_selection import ParameterGrid
 from tqdm import tqdm
+from typing import Optional
+
 from .utils import raster_to_h3, vector_to_h3, loglinear_pooling, kl_divergence_sum, plot_gdf_basemap
 
 
 def run(
-    data_dir,
-    area_of_interest,
-    layers,
-    pooling_weights,
-    pooling_weights_auto,
-    h3_resolution,
-    save_normalized_layers,
-    out_dir,
-    normalization_quantiles=(0.0, 1.0),
-):
+    data_dir: str,
+    area_of_interest: str,
+    layers: tuple[str, ...],
+    pooling_weights: tuple[float, ...],
+    pooling_weights_auto: bool,
+    h3_resolution: int,
+    save_normalized_layers: bool,
+    out_dir: str,
+    normalization_quantiles: Optional[tuple[float, ...]] = (0.0, 1.0),
+) -> Path:
     if len(layers) != len(pooling_weights):
         raise ValueError("layers and pooling_weights do not match.")
 

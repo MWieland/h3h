@@ -9,20 +9,22 @@ import seaborn as sns
 
 from pathlib import Path
 from PIL import Image
+from typing import Optional, Union
+
 from .utils import regression_metrics, plot_gdf_basemap
 
 
 def run(
-    layer_true,
-    layer_pred,
-    area_of_interest,
-    h3_resolution,
-    out_dir,
-    h3_resolution_aggregate=None,
-    h3_smoothing_factor=0,
-    intersect=False,
-    combine_plots=False,
-):
+    layer_true: str,
+    layer_pred: str,
+    area_of_interest: str,
+    h3_resolution: int,
+    out_dir: str,
+    h3_resolution_aggregate: Optional[bool] = None,
+    h3_smoothing_factor: Optional[float] = 0,
+    intersect: Optional[bool] = False,
+    combine_plots: Optional[bool] = False,
+) -> Union[float, float, float, float, float]:
     hex_col = "h3_" + str(h3_resolution)
     h3_resolution_aggregate = None if h3_resolution_aggregate == "" else h3_resolution_aggregate
 
