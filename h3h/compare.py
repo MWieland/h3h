@@ -28,7 +28,7 @@ def run(
     hex_col = "h3_" + str(h3_resolution)
     h3_resolution_aggregate = None if h3_resolution_aggregate == "" else h3_resolution_aggregate
 
-    logging.debug(f"Converting area of interest {Path(area_of_interest).name} to H3")
+    logging.info(f"..Converting area of interest {Path(area_of_interest).name} to H3")
     if Path(area_of_interest).suffix in [".gpkg"]:
         gdf_aoi = geopandas.read_file(area_of_interest).to_crs(epsg=4326)
         gdf_aoi_h3 = (
@@ -41,7 +41,7 @@ def run(
     z_list = []
     for layer_file in [layer_pred, layer_true]:
         layer_file = Path(layer_file)
-        logging.debug(f"Loading H3 layer {layer_file.name}")
+        logging.info(f"..Loading H3 layer {layer_file.name}")
         gdf_layer_h3 = geopandas.read_file(layer_file).to_crs(epsg=3857)
         if hex_col not in list(gdf_layer_h3.columns.values):
             raise ValueError(
@@ -49,13 +49,13 @@ def run(
             )
         z_list.append(f"{layer_file.stem}")
 
-        logging.debug(f"Joining layer to area of interest on H3 hex code")
+        logging.info(f"..Joining layer to area of interest on H3 hex code")
         gdf_aoi_h3 = pd.merge(left=gdf_aoi_h3, right=gdf_layer_h3, how="left", on=hex_col, suffixes=("", "_y"))
         gdf_aoi_h3.drop(gdf_aoi_h3.filter(regex="_y$").columns, axis=1, inplace=True)
     gdf_h3 = gdf_aoi_h3[[hex_col, z_list[0], z_list[1], "geometry"]]
 
     if h3_resolution_aggregate is not None:
-        logging.debug(f"Aggregating from H3 resolution {h3_resolution} to {h3_resolution_aggregate}")
+        logging.info(f"..Aggregating from H3 resolution {h3_resolution} to {h3_resolution_aggregate}")
         # this assumes h3 as index
         gdf_h3 = gdf_h3.set_index(hex_col).to_crs(epsg=4326)
         gdf_h3 = gdf_h3.h3.h3_to_parent_aggregate(
@@ -85,7 +85,7 @@ def run(
         gdf_h3 = gdf_h3.fillna(0)
 
     if h3_smoothing_factor > 0:
-        logging.debug(f"Smoothing H3 grid cells with factor k={h3_smoothing_factor}")
+        logging.info(f"..Smoothing H3 grid cells with factor k={h3_smoothing_factor}")
         # this assumes h3 as index
         gdf_h3 = gdf_h3.set_index(hex_col).to_crs(epsg=4326)
         gdf_h3 = gdf_h3.h3.k_ring_smoothing(h3_smoothing_factor, return_geometry=True)
@@ -98,7 +98,7 @@ def run(
     else:
         smooth_str = ""
 
-    logging.debug("Comparing H3 layers inside area of interest")
+    logging.info("..Comparing H3 layers inside area of interest")
     # normalize values (minmax scaler)
     # makes sure to have range [0,1] even after aggregation and/or smoothing
     normalization_quantiles = (0.0, 1.0)
@@ -141,7 +141,7 @@ def run(
     )
 
     if combine_plots:
-        logging.debug("Combining plots")
+        logging.info("..Combining plots")
         img_files = [
             Path(out_dir) / Path(f"correlation_{z_list[0]}-{z_list[1]}{aggr_str}{smooth_str}.png"),
             Path(out_dir) / Path(f"pred_{z_list[0]}{aggr_str}{smooth_str}.png"),

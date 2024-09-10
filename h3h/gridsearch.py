@@ -71,7 +71,7 @@ def compare(
                     shutil.copyfile(f, Path(out_dir) / Path(f"comparisons_h3_{h3_resolution}") / Path(f).name)
                 file_name = Path(f).stem
         except Exception as e:
-            logging.debug(e)
+            logging.info(e)
             r_square_adj, r, p, aic, bic, file_name = None, None, None, None, None, None
 
     return {
@@ -102,7 +102,7 @@ def run(
     out_dir: str,
 ) -> pd.DataFrame:
     for h3_resolution in h3_resolutions:
-        logging.info(f"Grid search hyperparameters for h3_resolution {h3_resolution}")
+        logging.info(f"..Grid search hyperparameters for h3_resolution {h3_resolution}")
 
         # make output subdirectories for plots
         Path(Path(out_dir) / Path(f"hotspots_h3_{h3_resolution}")).mkdir(parents=True, exist_ok=True)

@@ -55,7 +55,26 @@ parser.add_argument(
     required=False,
 )
 
+parser.add_argument(
+    "--debug",
+    help="enable debug loglevel",
+    action="store_const",
+    dest="loglevel",
+    const=logging.DEBUG,
+    default=logging.WARNING,
+)
+
+parser.add_argument(
+    "--verbose",
+    help="enable info loglevel",
+    action="store_const",
+    dest="loglevel",
+    const=logging.INFO,
+)
+
 args = parser.parse_args()
+
+logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 
 if Path(args.settings).is_file():
     with open(args.settings) as f:
