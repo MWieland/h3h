@@ -14,7 +14,9 @@ from .compare import run as compare_run
 from .convert import run as convert_run
 
 
-def compare(parameter, data_dir, layers, layer_true, area_of_interest, out_dir):
+def compare(
+    parameter: dict, data_dir: str, layers: tuple[str, ...], layer_true: str, area_of_interest: str, out_dir: str
+) -> dict:
     pooling_weights = []
     for k in parameter.keys():
         if "pooling_weights" in k:
@@ -69,7 +71,7 @@ def compare(parameter, data_dir, layers, layer_true, area_of_interest, out_dir):
                     shutil.copyfile(f, Path(out_dir) / Path(f"comparisons_h3_{h3_resolution}") / Path(f).name)
                 file_name = Path(f).stem
         except Exception as e:
-            logging.debug(e)
+            logging.info(e)
             r_square_adj, r, p, aic, bic, file_name = None, None, None, None, None, None
 
     return {
@@ -88,19 +90,19 @@ def compare(parameter, data_dir, layers, layer_true, area_of_interest, out_dir):
 
 
 def run(
-    data_dir,
-    layers,
-    layer_true,
-    area_of_interest,
-    pooling_weights_from_to_steps,
-    h3_resolutions,
-    normalization_quantiles,
-    n_jobs,
-    save_geopackage,
-    out_dir,
-):
+    data_dir: str,
+    layers: tuple[str, ...],
+    layer_true: str,
+    area_of_interest: str,
+    pooling_weights_from_to_steps: tuple[float, float, float],
+    h3_resolutions: int,
+    normalization_quantiles: tuple[float, float],
+    n_jobs: int,
+    save_geopackage: bool,
+    out_dir: str,
+) -> pd.DataFrame:
     for h3_resolution in h3_resolutions:
-        logging.info(f"Grid search hyperparameters for h3_resolution {h3_resolution}")
+        logging.info(f"..Grid search hyperparameters for h3_resolution {h3_resolution}")
 
         # make output subdirectories for plots
         Path(Path(out_dir) / Path(f"hotspots_h3_{h3_resolution}")).mkdir(parents=True, exist_ok=True)
@@ -143,3 +145,5 @@ def run(
         # report top5 parameter combinations (having highest r_squared_adj)
         top5 = results.sort_values(by=["r_square_adj"], ascending=False)[0:5]
         logging.info(top5)
+
+        return results

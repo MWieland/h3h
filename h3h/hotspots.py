@@ -8,27 +8,29 @@ from joblib import Parallel, delayed
 from pathlib import Path
 from sklearn.model_selection import ParameterGrid
 from tqdm import tqdm
+from typing import Optional
+
 from .utils import raster_to_h3, vector_to_h3, loglinear_pooling, kl_divergence_sum, plot_gdf_basemap
 
 
 def run(
-    data_dir,
-    area_of_interest,
-    layers,
-    pooling_weights,
-    pooling_weights_auto,
-    h3_resolution,
-    save_normalized_layers,
-    out_dir,
-    normalization_quantiles=(0.0, 1.0),
-):
+    data_dir: str,
+    area_of_interest: str,
+    layers: tuple[str, ...],
+    pooling_weights: tuple[float, ...],
+    pooling_weights_auto: bool,
+    h3_resolution: int,
+    save_normalized_layers: bool,
+    out_dir: str,
+    normalization_quantiles: Optional[tuple[float, ...]] = (0.0, 1.0),
+) -> Path:
     if len(layers) != len(pooling_weights):
         raise ValueError("layers and pooling_weights do not match.")
 
     hex_col = "h3_" + str(h3_resolution)
     z_list = []
 
-    logging.debug(f"Converting area of interest {Path(area_of_interest).name} to H3")
+    logging.info(f"..Converting area of interest {Path(area_of_interest).name} to H3")
     if Path(area_of_interest).suffix in [".gpkg"]:
         gdf_aoi_h3 = vector_to_h3(layer_file=area_of_interest, column_name="aoi", h3_resolution=h3_resolution)
     else:
@@ -38,10 +40,10 @@ def run(
         layer_file = next(Path(data_dir).rglob(layer))
         z = f"{layer_file.stem}_norm_{str(normalization_quantiles[0]).replace('.', '')}_{str(normalization_quantiles[1]).replace('.', '')}_{hex_col}"
         if Path(Path(out_dir) / Path(f"{z}.gpkg")).exists():
-            logging.debug(f"Loading already existing H3 layer {z}.gpkg")
+            logging.info(f"..Loading already existing H3 layer {z}.gpkg")
             gdf_h3 = geopandas.GeoDataFrame.from_file(Path(out_dir) / Path(f"{z}.gpkg")).to_crs(epsg=3857)
         else:
-            logging.debug(f"Converting layer {layer} to H3")
+            logging.info(f"..Converting layer {layer} to H3")
             if layer_file.suffix in [".tif", ".TIF", ".tiff", ".TIFF"]:
                 # convert raster layer
                 gdf_h3 = raster_to_h3(layer_file=layer_file, column_name=z, h3_resolution=h3_resolution)
@@ -54,11 +56,11 @@ def run(
                     f"layer_type {layer_file.suffix} not supported ['.tif', '.TIF', '.tiff', '.TIFF', '.gpkg', '.geojson']"
                 )
 
-        logging.debug(f"Joining layer to area of interest on H3 hex code")
+        logging.info(f"..Joining layer to area of interest on H3 hex code")
         gdf_aoi_h3 = pd.merge(left=gdf_aoi_h3, right=gdf_h3, how="left", on=hex_col, suffixes=("", "_y"))
         gdf_aoi_h3.drop(gdf_aoi_h3.filter(regex="_y$").columns, axis=1, inplace=True)
 
-        logging.debug(f"Normalizing layer values (minmax scaler)")
+        logging.info(f"..Normalizing layer values (minmax scaler)")
         # normalize after joining and ensure that they are probability density functions, because the join modifies the spatial extent of the input layer and thus its statistics
         lo, hi = gdf_aoi_h3[z].quantile(normalization_quantiles[0]), gdf_aoi_h3[z].quantile(normalization_quantiles[1])
         gdf_aoi_h3[z] = np.clip((gdf_aoi_h3[z] - lo) / (hi - lo), a_min=0.0, a_max=1.0)
@@ -72,7 +74,7 @@ def run(
     gdf_h3 = gdf_aoi_h3[z_list]
     gdf_h3 = gdf_h3.fillna(0)
 
-    logging.debug(f"Probability pooling (loglinear)")
+    logging.info(f"..Probability pooling (loglinear)")
     # compose strings to specify normalization in file and column names
     norm = f"norm_{str(normalization_quantiles[0]).replace('.', '')}_{str(normalization_quantiles[1]).replace('.', '')}"
 
@@ -83,7 +85,7 @@ def run(
         p_layers.append(gdf_h3[z].copy(deep=True))
 
     if pooling_weights_auto:
-        logging.debug("Searching optimal pooling weights")
+        logging.info("..Searching optimal pooling weights")
         # compile parameter grid with pooling weights for each layer
         parameter_grid = {}
         start, stop, step = [0.0, 2.0, 0.25]
@@ -103,7 +105,7 @@ def run(
         # compute optimal pooling weights (argmin(kl_sum))
         kl_sum_df = pd.concat(kldiv_list).sort_values("kl_sum", ascending=True)
         pooling_weights = kl_sum_df.iloc[0].values[0]
-        logging.debug(f"Using optimized pooling weights: {pooling_weights}")
+        logging.info(f"..Using optimized pooling weights: {pooling_weights}")
 
     # compose strings to specify pooling weights in file and column names
     pw = "weights_"
@@ -114,7 +116,7 @@ def run(
     # pool layers
     gdf_h3[f"hotspots_{norm}_{pw}_{hex_col}"] = loglinear_pooling(weights=pooling_weights, p_layers=p_layers)
 
-    logging.debug("Exporting and plotting hotspots")
+    logging.info("..Exporting and plotting hotspots")
     hotspot_file = Path(out_dir) / Path(f"hotspots_{norm}_{pw}_{hex_col}.gpkg")
     gdf_h3.to_file(hotspot_file, driver="GPKG")
     bounds = gdf_h3.total_bounds
@@ -123,7 +125,7 @@ def run(
     plt.close()
 
     if save_normalized_layers:
-        logging.debug("Exporting and plotting normalized h3 input data")
+        logging.info("..Exporting and plotting normalized h3 input data")
         for idx in range(len(layers)):
             z = f"{Path(layers[idx]).stem}_norm_{str(normalization_quantiles[0]).replace('.', '')}_{str(normalization_quantiles[1]).replace('.', '')}_{hex_col}"
             gdf_h3.to_file(Path(out_dir) / Path(f"{z}.gpkg"), driver="GPKG")

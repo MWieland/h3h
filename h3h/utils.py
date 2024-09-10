@@ -1,22 +1,22 @@
 import contextily as cx
 import geopandas
+import h3
+import h3pandas
+import rioxarray
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
+import shapely
 import statsmodels.api as sm
 
+from pathlib import Path
 from pyproj import Transformer
-
-import h3
-import h3pandas
-import rioxarray
-
-from shapely.geometry import Polygon
+from typing import Optional, Union
 
 
-def raster_to_h3(layer_file, column_name, h3_resolution):
+def raster_to_h3(layer_file: Union[str, Path], column_name: str, h3_resolution: int) -> geopandas.GeoDataFrame:
     # load raster to xyz dataframe
     df = (
         rioxarray.open_rasterio(layer_file)
@@ -37,13 +37,22 @@ def raster_to_h3(layer_file, column_name, h3_resolution):
     df_h3 = df.groupby(hex_col)[column_name].sum().to_frame(column_name).reset_index()
 
     # build h3 geometry and subset columns
-    geom = [Polygon(h3.h3_to_geo_boundary(row[hex_col], geo_json=True)) for index, row in df_h3.iterrows()]
+    geom = [
+        shapely.geometry.Polygon(h3.h3_to_geo_boundary(row[hex_col], geo_json=True)) for index, row in df_h3.iterrows()
+    ]
     gdf_h3 = geopandas.GeoDataFrame(df_h3, geometry=geom, crs="EPSG:4326").to_crs(epsg=3857)
     gdf_h3 = gdf_h3[[hex_col, column_name, "geometry"]]
     return gdf_h3
 
 
-def vector_to_h3(layer_file, column_name, h3_resolution, bbox=None):
+def vector_to_h3(
+    layer_file: Union[str, Path],
+    column_name: str,
+    h3_resolution: int,
+    bbox: Optional[
+        Union[tuple[float, float, float, float], geopandas.GeoDataFrame, geopandas.GeoSeries, shapely.Geometry]
+    ] = None,
+) -> geopandas.GeoDataFrame:
     # load vector to geodataframe
     gdf = geopandas.GeoDataFrame.from_file(layer_file, bbox=bbox).to_crs(epsg=4326)
     geom_type = gdf.geom_type[0]
@@ -69,7 +78,9 @@ def vector_to_h3(layer_file, column_name, h3_resolution, bbox=None):
     return gdf_h3
 
 
-def loglinear_pooling(weights, p_layers):
+def loglinear_pooling(
+    weights: tuple[float, ...], p_layers: tuple[geopandas.GeoDataFrame, ...]
+) -> geopandas.GeoDataFrame:
     with np.errstate(divide="ignore"):
         # loglinear probability pooling
         p_pooled = np.zeros_like(p_layers[0])
@@ -83,7 +94,7 @@ def loglinear_pooling(weights, p_layers):
     return p_pooled
 
 
-def kl_divergence_sum(parameter, p_layers):
+def kl_divergence_sum(parameter: dict, p_layers: tuple[geopandas.GeoDataFrame, ...]) -> pd.DataFrame:
     pooling_weights = []
     for k in parameter.keys():
         if "pooling_weights" in k:
@@ -107,7 +118,9 @@ def kl_divergence_sum(parameter, p_layers):
         return kl_sum_df
 
 
-def regression_metrics(x, y):
+def regression_metrics(
+    x: geopandas.GeoSeries, y: geopandas.GeoSeries
+) -> tuple[float, float, float, float, float, float]:
     x = sm.add_constant(x)
     model = sm.OLS(endog=y, exog=x)
     res = model.fit()
@@ -120,7 +133,15 @@ def regression_metrics(x, y):
     return r_square_adj, coeff, p, aic, bic, resid
 
 
-def plot_gdf_basemap(gdf, column, cmap="Reds", bounds=None, add_labels=True, center_cmap=False, crs=3857):
+def plot_gdf_basemap(
+    gdf: geopandas.GeoDataFrame,
+    column: str,
+    cmap: Optional[str] = "Reds",
+    bounds: Optional[tuple[float, float, float, float]] = None,
+    add_labels: Optional[bool] = True,
+    center_cmap: Optional[bool] = False,
+    crs: Optional[int] = 3857,
+) -> plt:
     fig, ax = plt.subplots()
     if bounds is not None:
         transformer = Transformer.from_crs(gdf.crs, crs, always_xy=True)
