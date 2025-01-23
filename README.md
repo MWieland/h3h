@@ -9,7 +9,7 @@ Immediately after a disaster strikes, it is crucial to quickly identify the most
 
 This publication provides further insight into the underlying algorithms and shows application examples and evaluations for several real-world flood disasters.
 
-> *Wieland, M., Resch, B., Schmidt, S., Abecker, A., Martinis, S. (under review). Fusion of geospatial information from remote sensing and social media to prioritize rapid response actions in case of floods. Natural Hazards.*
+> *Wieland, M., Resch, B., Schmidt, S., Abecker, A., Martinis, S. (2025). Fusion of geospatial information from remote sensing and social media to prioritize rapid response actions in case of floods. Natural Hazards. [https://doi.org/10.1007/s11069-025-07120-7](https://doi.org/10.1007/s11069-025-07120-7)*
 
 If you use [H3H](https://github.com/MWieland/h3h) in your work, please consider citing the above publication.
 
